@@ -1,0 +1,10 @@
+# secrets
+.env
+
+# dependencies
+node_modules
+# testing
+/coverage
+
+# production
+/build

@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "file:./dev.db"
+}
+
+model Child {
+  id            Int          @id @default(autoincrement())
+  name          String
+  parentNote    String?
+  hasDailyLunch Boolean      @default(false)
+  parent        User?        @relation(fields: [parentId], references: [id])
+  parentId      Int
+  ExcuseList    ExcuseList[]
+  AddedList     AddedList[]
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  PARENT
+}
+
+model User {
+  id       Int     @id @default(autoincrement())
+  name     String
+  email    String  @unique
+  phone    String
+  role     Role    @default(PARENT)
+  children Child[]
+  note     String?
+}
+
+model ExcuseList {
+  id      Int      @id @default(autoincrement())
+  date    DateTime
+  child   Child    @relation(fields: [childId], references: [id])
+  childId Int
+  note    String?
+}
+
+model AddedList {
+  id      Int      @id @default(autoincrement())
+  date    DateTime
+  child   Child    @relation(fields: [childId], references: [id])
+  childId Int
+  note    String?
+}
+
+model DayStats {
+  date       DateTime @unique
+  addedIds   Int[]
+  absentIds  Int[]
+  lunchCount Int
+}

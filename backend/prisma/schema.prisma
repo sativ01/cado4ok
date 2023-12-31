@@ -8,23 +8,27 @@ datasource db {
 }
 
 model School {
-  id       String  @id @default(uuid())
+  id       String    @id @default(uuid())
   name     String
   address  String
-  email    String  @unique
-  admins   User[]  @relation("Admins")
-  teachers User[]  @relation("Teachers")
-  parents  User[]  @relation("Parents")
+  email    String    @unique
+  admins   Admin[]
+  teachers Teacher[]
+  parents  Parent[]
   groups   Group[]
 }
 
 model Group {
-  id       String @id @default(uuid())
-  name     String
-  school   School @relation(fields: [schoolId], references: [id])
-  schoolId String
-  teachers User[]
+  id        String      @id @default(uuid())
+  name      String
+  school    School      @relation(fields: [schoolId], references: [id])
+  schoolId  String
+  teachers  Teacher[]
+  kids      Kid[]
+  amendList AmendList[]
 }
+
+//-------- Users and user types ------------
 
 enum Role {
   ADMIN
@@ -33,49 +37,82 @@ enum Role {
 }
 
 model User {
-  id                String  @id @default(uuid())
-  firstName         String
-  lastName          String
-  email             String  @unique
-  phone             String  @unique
-  role              Role    @default(PARENT)
-  kids              Kid[]
-  note              String?
-  adminOfSchool     School? @relation("Admins", fields: [adminOfSchoolId], references: [id])
-  adminOfSchoolId   String?
-  teacherOfSchool   School? @relation("Teachers", fields: [teacherOfSchoolId], references: [id])
-  teacherOfSchoolId String?
-  parentOfSchool    School? @relation("Parents", fields: [parentOfSchoolId], references: [id])
-  parentOfSchoolId  String?
-  groupTeacher      Group?  @relation(fields: [groupId], references: [id])
-  groupId           String?
+  id        String    @id @default(uuid())
+  firstName String
+  lastName  String
+  email     String    @unique
+  phone     String    @unique
+  parents   Parent[]
+  teachers  Teacher[]
+  admins    Admin[]
 }
+
+model Parent {
+  user     User   @relation(fields: [userId], references: [id])
+  userId   String @unique
+  role     Role   @default(PARENT)
+  school   School @relation(fields: [schoolId], references: [id])
+  schoolId String
+  note     String
+  Kid      Kid[]
+}
+
+model Teacher {
+  id       String  @id @default(uuid())
+  user     User    @relation(fields: [userId], references: [id])
+  userId   String  @unique
+  role     Role    @default(TEACHER)
+  school   School  @relation(fields: [schoolId], references: [id])
+  schoolId String
+  note     String
+  groups   Group[]
+}
+
+model Admin {
+  user     User   @relation(fields: [userId], references: [id])
+  userId   String @unique
+  role     Role   @default(ADMIN)
+  school   School @relation(fields: [schoolId], references: [id])
+  schoolId String
+  note     String
+}
+
+//---END----- Users and user types ------------
 
 model Kid {
-  id            String       @id @default(uuid())
-  name          String
-  parentNote    String?
-  hasDailyLunch Boolean      @default(false)
-  parent        User?        @relation(fields: [parentId], references: [id])
-  parentId      String
-  ExcuseList    ExcuseList[]
-  AddedList     AddedList[]
+  id             String          @id @default(uuid())
+  name           String
+  parentNote     String?
+  hasDailyLunch  Boolean         @default(false)
+  parent         Parent          @relation(fields: [parentId], references: [userId])
+  parentId       String
+  group          Group           @relation(fields: [groupId], references: [id])
+  groupId        String
+  amendLists     AmendList[]
+  amendListNotes AmendListNote[]
 }
 
-model ExcuseList {
-  id    String   @id @default(uuid())
-  date  DateTime
-  kid   Kid      @relation(fields: [kidId], references: [id])
-  kidId String
-  note  String?
+enum AmendActions {
+  ADD
+  REMOVE
 }
 
-model AddedList {
-  id    String   @id @default(uuid())
-  date  DateTime
-  kid   Kid      @relation(fields: [kidId], references: [id])
-  kidId String
-  note  String?
+model AmendList {
+  date           DateTime        @id @unique
+  type           AmendActions    @default(ADD)
+  group          Group           @relation(fields: [groupId], references: [id])
+  groupId        String
+  kids           Kid[]
+  amendListNotes AmendListNote[]
+}
+
+model AmendListNote {
+  kid           Kid       @relation(fields: [kidId], references: [id])
+  kidId         String
+  amendList     AmendList @relation(fields: [amendListDate], references: [date])
+  amendListDate DateTime
+
+  @@id([kidId, amendListDate])
 }
 
 model DayStats {

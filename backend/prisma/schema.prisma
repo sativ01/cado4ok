@@ -4,18 +4,26 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "file:./dev.db"
+  url      = "postgresql://postgres:pasword@localhost:5432/cado4ok?schema=public"
 }
 
-model Child {
-  id            Int          @id @default(autoincrement())
-  name          String
-  parentNote    String?
-  hasDailyLunch Boolean      @default(false)
-  parent        User?        @relation(fields: [parentId], references: [id])
-  parentId      Int
-  ExcuseList    ExcuseList[]
-  AddedList     AddedList[]
+model School {
+  id       String  @id @default(uuid())
+  name     String
+  address  String
+  email    String  @unique
+  admins   User[]  @relation("Admins")
+  teachers User[]  @relation("Teachers")
+  parents  User[]  @relation("Parents")
+  groups   Group[]
+}
+
+model Group {
+  id       String @id @default(uuid())
+  name     String
+  school   School @relation(fields: [schoolId], references: [id])
+  schoolId String
+  teachers User[]
 }
 
 enum Role {
@@ -25,29 +33,49 @@ enum Role {
 }
 
 model User {
-  id       Int     @id @default(autoincrement())
-  name     String
-  email    String  @unique
-  phone    String
-  role     Role    @default(PARENT)
-  children Child[]
-  note     String?
+  id                String  @id @default(uuid())
+  firstName         String
+  lastName          String
+  email             String  @unique
+  phone             String  @unique
+  role              Role    @default(PARENT)
+  kids              Kid[]
+  note              String?
+  adminOfSchool     School? @relation("Admins", fields: [adminOfSchoolId], references: [id])
+  adminOfSchoolId   String?
+  teacherOfSchool   School? @relation("Teachers", fields: [teacherOfSchoolId], references: [id])
+  teacherOfSchoolId String?
+  parentOfSchool    School? @relation("Parents", fields: [parentOfSchoolId], references: [id])
+  parentOfSchoolId  String?
+  groupTeacher      Group?  @relation(fields: [groupId], references: [id])
+  groupId           String?
+}
+
+model Kid {
+  id            String       @id @default(uuid())
+  name          String
+  parentNote    String?
+  hasDailyLunch Boolean      @default(false)
+  parent        User?        @relation(fields: [parentId], references: [id])
+  parentId      String
+  ExcuseList    ExcuseList[]
+  AddedList     AddedList[]
 }
 
 model ExcuseList {
-  id      Int      @id @default(autoincrement())
-  date    DateTime
-  child   Child    @relation(fields: [childId], references: [id])
-  childId Int
-  note    String?
+  id    String   @id @default(uuid())
+  date  DateTime
+  kid   Kid      @relation(fields: [kidId], references: [id])
+  kidId String
+  note  String?
 }
 
 model AddedList {
-  id      Int      @id @default(autoincrement())
-  date    DateTime
-  child   Child    @relation(fields: [childId], references: [id])
-  childId Int
-  note    String?
+  id    String   @id @default(uuid())
+  date  DateTime
+  kid   Kid      @relation(fields: [kidId], references: [id])
+  kidId String
+  note  String?
 }
 
 model DayStats {

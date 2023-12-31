@@ -4,7 +4,8 @@ const prisma = new PrismaClient()
 
 const userData = [
   {
-    name: 'Admin',
+    firstName: 'Admin',
+    lastName: 'Admin',
     email: 'admin@prisma.io',
     phone: '2435234',
     role: Role.ADMIN,
@@ -12,22 +13,36 @@ const userData = [
 ]
 
 async function main() {
-  console.log(`Start seeding ...`)
-  for (const u of userData) {
-    const user = await prisma.user.create({
-      data: u,
-    })
-    console.log(`Created user with id: ${user.id}`)
+  console.log(`Start seeding ...`);
+  let count = 0;
+  try {
+    // await prisma.$connect();
+    count = await prisma.user.count();
+    console.log(`There are ${count} users in the database.`);
+    for (const u of userData) {
+      const user = await prisma.user.create({
+        data: u,
+      })
+      console.log(`Created user with id: ${user.id}`)
+    }
+    count = await prisma.user.count();
+    console.log(`There are ${count} users in the database.`);
+    console.log(`Seeding finished.`)
+  } catch (e) {
+    console.log(e)
+    await prisma.$disconnect()
   }
-  console.log(`Seeding finished.`)
+  await prisma.$disconnect()
 }
 
-main()
-  .then(async () => {
-    await prisma.$disconnect()
-  })
-  .catch(async (e) => {
-    console.error(e)
-    await prisma.$disconnect()
-    process.exit(1)
-  })
+await main()
+// .catch(async (e) => {
+//   console.log(e)
+//   await prisma.$disconnect()
+//   process.exit(1)
+// })
+// .finally(async () => {
+//   console.log("finito")
+//   await prisma.$disconnect()
+// })
+

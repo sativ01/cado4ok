@@ -1,8 +1,10 @@
 import { Prisma, PrismaClient } from '@prisma/client'
 import fastify from 'fastify'
+import cors from '@fastify/cors'
 
 const prisma = new PrismaClient()
 const app = fastify({ logger: true })
+await app.register(cors, { origin: '*' })
 
 // app.post<{
 //   Body: ICreatePostBody

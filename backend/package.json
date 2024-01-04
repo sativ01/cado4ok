@@ -1,17 +1,19 @@
 {
-  "name": "backend",
+  "name": "@cado4ok/backend",
   "module": "src/index.ts",
   "type": "module",
   "devDependencies": {
     "@types/bun": "^1.0.0"
   },
   "scripts": {
-    "seed": "bun run ./prisma/seed.ts"
+    "seed": "bun run ./prisma/seed.ts",
+    "generate": "bunx prisma generate && bun ./rename-prisma-client.ts && cd ./dist/client && bun link && cd ../../../frontend/ && bun link prisma-client"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@fastify/cors": "^8.5.0",
     "@prisma/client": "^5.7.1",
     "fastify": "^4.25.2",
     "prisma": "^5.7.1"
